@@ -5,14 +5,25 @@ from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-file = open('RU.txt', 'r', encoding='utf-8')
+file = open('RU.txt', 'r', encoding='utf-8')  # Файл обработанной базы данных (Оставлены только города)
+'''
+    Перенос базы данных из файла в список
+'''
 cities_list = []
 for line in file:
     cities_list.append(line.split('\t'))
 
+# Словарь временных зон для вычета разницы времени
 timezones = {'Europe/Kaliningrad': 0, 'Europe/Moscow': 1, 'Europe/Samara': 2, 'Asia/Yekaterinburg': 3, 'Asia/Omsk': 4,
              'Asia/Krasnoyarsk': 5, 'Asia/Irkutsk': 6, 'Asia/Yakutsk': 7, 'Asia/Vladivostok': 8, 'Asia/Magadan': 9,
              'Asia/Kamchatka': 10}
+
+'''
+    Страница /cityInfo, принимает 1 параметр GET: 'geonameid'.
+    Поиск искомого города происходит через бинарный поиск.
+    Примерное время затраченное на поиск города - 5.2999999999858716e-05
+    После обнаружения города он переносится в словарь, который имеет структуру JSON файла
+'''
 
 
 @app.route('/cityInfo', methods=['GET'])
@@ -43,6 +54,13 @@ def cityInfo():
         return 'No the number'
 
 
+'''
+    Страница /citiesPage, принимает два параметра GET: 
+    'number' - номер страницы, 'cnt' - количество элементов на странице.
+    Возвращает cnt количество городова на number странице.
+'''
+
+
 @app.route('/citiesPage', methods=['GET'])
 def citiesPage():
     page_number = int(request.args.get('number'))
@@ -62,6 +80,14 @@ def citiesPage():
                                'dem': cities_page_list[i][16], 'timezone': cities_page_list[i][17],
                                'modification_date': cities_page_list[i][18][:-1]}
     return json.dumps(cities_page_list, ensure_ascii=False)
+
+
+'''
+    Страница /compareCitites, принимает два параметра GET: 'city_1' и 'city_2' - название городов на русском.
+    Возвращает информацию о двух городах и отдельным словарем возвращает информацию о сравнении:
+    'timezone_average' - разница во времени, 'norther' - содержит название города, который севернее,
+    'timezone' - содержит True или False (Находится в одной временной зоне или нет)
+'''
 
 
 @app.route('/compareCities', methods=['GET'])
@@ -108,9 +134,9 @@ def compareCities():
             return json.dumps(rtrn, ensure_ascii=False)
     else:
         if city_1['timezone'] == city_2['timezone']:
-            rtrn[2].update({'northern': city_name_1, 'timezone': True})
+            rtrn[2].update({'northern': city_name_2, 'timezone': True})
             return json.dumps(rtrn, ensure_ascii=False)
         else:
-            rtrn[2].update({'northern': city_name_1, 'timezone': True})
+            rtrn[2].update({'northern': city_name_2, 'timezone': True})
             return json.dumps(rtrn, ensure_ascii=False)
 
