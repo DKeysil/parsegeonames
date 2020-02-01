@@ -20,6 +20,7 @@ file with cities you can take here - https://download.geonames.org/export/zip/
 
 
 ### Реализация
+Версия Python 3.8.1
 
 Для реализации web интерфейса используется Flask 1.1.1.
 
